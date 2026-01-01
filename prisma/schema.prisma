@@ -10,13 +10,106 @@ datasource db {
 }
 
 // Models
-model Form {
-  id          Int   @id @default(autoincrement())
-  email       String @unique
-  step1Data   Json?    
-  step2Data   Json?   
-  isCompleted Boolean @default(false)
-  currentStep Int      @default(1)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  role         ROLE      @default(USER)
+  isEmailVerif Boolean   @default(false)
+  hash         String
+  name         String
+  cart         Cart?     @relation(fields: [cartId], references: [id])
+  cartId       String?   @unique
+  wishlist     Wishlist? @relation(fields: [wishlistId], references: [id])
+  wishlistId   String?   @unique
+  reviews      Review[]
+  RT           String?
+  product      Product[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model Product {
+  id          String         @id @default(uuid())
+  name        String
+  description String?
+  price       Float
+  imageUrl    String?
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  category    Category       @relation(fields: [categoryId], references: [id])
+  categoryId  String
+  reviews     Review[]
+  cartItems   CartItem[]
+  wishlists   WishlistItem[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+model Category {
+  id        String    @id @default(uuid())
+  name      String    @unique
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  rating    Int
+  comment   String?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  product   Product  @relation(fields: [productId], references: [id])
+  productId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt 
+
+  @@unique([userId, productId])
+}
+
+model Cart {
+  id        String     @id @default(uuid())
+  user      User?
+  items     CartItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model CartItem {
+  id        String   @id @default(uuid())
+  cart      Cart     @relation(fields: [cartId], references: [id])
+  cartId    String
+  product   Product  @relation(fields: [productId], references: [id])
+  productId String
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([cartId, productId])
+}
+
+model Wishlist {
+  id        String         @id @default(uuid())
+  user      User?
+  items     WishlistItem[]
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+}
+
+model WishlistItem {
+  id         String   @id @default(uuid())
+  wishlist   Wishlist @relation(fields: [wishlistId], references: [id])
+  wishlistId String
+  product    Product  @relation(fields: [productId], references: [id])
+  productId  String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([wishlistId, productId])
+}
+
+enum ROLE {
+  USER
+  ADMIN
 }
