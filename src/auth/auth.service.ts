@@ -10,7 +10,7 @@ import { compare, hash } from 'bcrypt';
 import { PayloadInterface } from './payload.interface';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-
+import { UserRole } from '@prisma/client';
 @Injectable()
 export class AuthService {
   constructor(
@@ -20,21 +20,18 @@ export class AuthService {
   ) {}
 
   async signup(dto: SignupDto) {
-    const user = await this.prisma.user.findUnique({
+    const existingUser = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
-    if (user) throw new ConflictException('User Is Already Exsists');
+    if (existingUser) throw new ConflictException('User already exists');
 
     const hashed = await hash(dto.password, 10);
 
     const newUser = await this.prisma.user.create({
       data: {
         email: dto.email,
-        hash: hashed,
-        name: dto.name,
-        cart: {
-          create: {},
-        },
+        password: hashed,
+        role: dto.role,
       },
     });
 
@@ -42,7 +39,9 @@ export class AuthService {
       sub: newUser.id,
       role: newUser.role,
     });
+
     await this.updateRT(newUser.id, tokens.refreshToken);
+
     return tokens;
   }
 
@@ -114,7 +113,7 @@ export class AuthService {
     });
     if (!user) throw new NotFoundException('User Not Found');
 
-    const isMatch = await compare(dto.password, user.hash);
+    const isMatch = await compare(dto.password, user.password);
     if (!isMatch) throw new UnauthorizedException('Password is Incorrect');
 
     return user;

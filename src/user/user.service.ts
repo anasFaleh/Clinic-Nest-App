@@ -1,48 +1,65 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { UpdateUserDto } from './dto/updateUser.dto';
+import { passwordDto } from './dto';
+import { compare, hash } from 'bcrypt';
 
 @Injectable()
 export class UserService {
   constructor(private prisma: PrismaService) {}
 
   /**
-   * get
-   * @param userId
+   *
+   * @param id
    * @returns
    */
-  async getUser(userId: string) {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw new NotFoundException('User Not Found');
-
+  async findOne(id: string) {
+    const user = this.prisma.user.findUnique({ where: { id } });
+    if (!user) throw new NotFoundException('User not found');
     return user;
   }
 
   /**
-   * delete
-   * @param userId
+   *
+   * @param id
    * @returns
    */
-  async deleteUser(userId: string) {
-    const user = await this.getUser(userId);
-    await this.prisma.user.delete({ where: { id: user.id } });
-    console.log('hi');
-    return { message: 'User Deleted Successflly' };
+  async disActive(id: string) {
+    const user = await this.findOne(id);
+    return await this.prisma.user.update({
+      where: { id },
+      data: { isActive: false },
+    });
   }
 
   /**
-   * update
-   * @param userId
-   * @param dto
+   *
+   * @param id
+   * @returns
    */
-  async updateUser(userId: string, dto: UpdateUserDto) {
-    const user = await this.getUser(userId);
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: {
-        ...dto,
-      },
+  async active(id: string) {
+    await this.findOne(id);
+    return await this.prisma.user.update({
+      where: { id },
+      data: { isActive: true },
     });
-    return { message: 'User Updated Successfully' };
+  }
+
+  async changePassowrd(id: string, dto: passwordDto) {
+    const user = await this.findOne(id);
+
+    const isMatch = await compare(dto.oldPassword, user?.password!);
+    if (!isMatch) throw new UnauthorizedException('Old password is incorrect');
+
+    const hashed = await hash(dto.newPassword, 10);
+
+    return await this.prisma.user.update({
+      where: { id },
+      data: { password: hashed },
+    });
   }
 }

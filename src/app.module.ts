@@ -2,16 +2,13 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
-import { UserModule } from './user/user.module';
-import { ProductModule } from './product/product.module';
-import { ReviewModule } from './review/review.module';
-import { CartModule } from './cart/cart.module';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { LoggerInterceptor } from './common/logger/logger.interceptor';
 import { WinstonModule } from 'nest-winston';
 import { WinstonConfig } from './common/logger/logger.config';
-import { CategoryModule } from './category/category.module';
-import { UploadsModule } from './uploads/uploads.module';
+import { PatientModule } from './patient/patient.module';
+import { UserModule } from './user/user.module';
+import { DoctorModule } from './doctor/doctor.module';
 
 @Module({
   imports: [
@@ -21,12 +18,9 @@ import { UploadsModule } from './uploads/uploads.module';
     WinstonModule.forRoot(WinstonConfig),
     PrismaModule,
     AuthModule,
+    PatientModule,
     UserModule,
-    ProductModule,
-    ReviewModule,
-    CartModule,
-    CategoryModule,
-    UploadsModule
+    DoctorModule,
   ],
   providers: [
     {

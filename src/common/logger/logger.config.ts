@@ -6,7 +6,7 @@ export const WinstonConfig: winston.LoggerOptions = {
     new winston.transports.Console({
       format: winston.format.combine(
         winston.format.timestamp(),
-        nestWinstonModuleUtilites.format.nestLike('Ecommerce-API', {
+        nestWinstonModuleUtilites.format.nestLike('Clinic-API', {
           prettyPrint: true,
         }),
       ),

@@ -1,5 +1,3 @@
-// schema.prisma
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,107 +7,128 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Enums
+enum UserRole {
+  PATIENT
+  STAFF
+  ADMIN
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PAID
+  UNPAID
+}
+
 // Models
 
+/**
+ * User model for authentication, authoriztion, email viriefcation and password reset
+ */
 model User {
-  id           String    @id @default(uuid())
-  email        String    @unique
-  role         ROLE      @default(USER)
-  isEmailVerif Boolean   @default(false)
-  hash         String
-  name         String
-  cart         Cart?     @relation(fields: [cartId], references: [id])
-  cartId       String?   @unique
-  wishlist     Wishlist? @relation(fields: [wishlistId], references: [id])
-  wishlistId   String?   @unique
-  reviews      Review[]
-  RT           String?
-  product      Product[]
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id          String   @id @default(uuid())
+  email       String   @unique
+  password    String
+  role        UserRole
+  isActive    Boolean  @default(true)
+  isEmailVirf Boolean  @default(false)
+  RT          String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  patient Patient?
+  doctor Doctor?
 }
 
-model Product {
-  id          String         @id @default(uuid())
-  name        String
-  description String?
-  price       Float
-  imageUrl    String?
-  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId      String
-  category    Category       @relation(fields: [categoryId], references: [id])
-  categoryId  String
-  reviews     Review[]
-  cartItems   CartItem[]
-  wishlists   WishlistItem[]
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+
+model Patient {
+  id       String  @id @default(uuid())
+  fullName String
+  phone    String?
+  dateOfBirth      DateTime?
+  address  String?
+  userId String @unique
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+  doctors       Doctor[]
+  appointments  Appointment[]
+  invoices      Invoice[]
+  notifications Notification[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 }
 
-model Category {
-  id        String    @id @default(uuid())
-  name      String    @unique
-  products  Product[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+model Doctor {
+  id           String        @id @default(uuid())
+  fullName     String
+  phone        String?
+  dateOfBirth      DateTime?
+  address      String?
+  specialty    String?
+  userId String @unique
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+  services     Service[]
+  patients     Patient[]
+  appointments Appointment[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 }
 
-model Review {
-  id        String   @id @default(uuid())
-  rating    Int
-  comment   String?
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String
-  product   Product  @relation(fields: [productId], references: [id])
-  productId String
+model Appointment {
+  id            String            @id @default(uuid())
+  patientId     String
+  doctorId      String
+  appointmentAt DateTime
+  status        AppointmentStatus @default(SCHEDULED)
+  notes         String?
+  createdAt     DateTime          @default(now())
+
+  // Relations
+  patient Patient @relation(fields: [patientId], references: [id])
+  doctor  Doctor  @relation(fields: [doctorId], references: [id])
+
+  invoice Invoice?
+}
+
+model Invoice {
+  id            String        @id @default(uuid())
+  patientId     String
+  appointmentId String?       @unique
+  amount        Float
+  status        PaymentStatus @default(UNPAID)
+  issuedAt      DateTime      @default(now())
+
+  appointment Appointment? @relation(fields: [appointmentId], references: [id])
+  patient     Patient      @relation(fields: [patientId], references: [id])
+}
+
+model Notification {
+  id     String @id @default(uuid())
+  userId String
+  title  String
+
+  message   String
+  isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt 
 
-  @@unique([userId, productId])
+  patient   Patient? @relation(fields: [patientId], references: [id])
+  patientId String?
 }
 
-model Cart {
-  id        String     @id @default(uuid())
-  user      User?
-  items     CartItem[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-}
-
-model CartItem {
+model Service {
   id        String   @id @default(uuid())
-  cart      Cart     @relation(fields: [cartId], references: [id])
-  cartId    String
-  product   Product  @relation(fields: [productId], references: [id])
-  productId String
-  quantity  Int      @default(1)
+  name      String
+  price     Float
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  @@unique([cartId, productId])
-}
-
-model Wishlist {
-  id        String         @id @default(uuid())
-  user      User?
-  items     WishlistItem[]
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
-}
-
-model WishlistItem {
-  id         String   @id @default(uuid())
-  wishlist   Wishlist @relation(fields: [wishlistId], references: [id])
-  wishlistId String
-  product    Product  @relation(fields: [productId], references: [id])
-  productId  String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  @@unique([wishlistId, productId])
-}
-
-enum ROLE {
-  USER
-  ADMIN
+  doctorId  String
+  doctor Doctor @relation(fields: [doctorId], references: [id])
 }
