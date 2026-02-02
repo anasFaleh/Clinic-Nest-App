@@ -43,20 +43,19 @@ model User {
 
   // Relations
   patient Patient?
-  doctor Doctor?
+  doctor  Doctor?
 }
 
-
 model Patient {
-  id       String  @id @default(uuid())
-  fullName String
-  phone    String?
-  dateOfBirth      DateTime?
-  address  String?
-  userId String @unique
+  id          String    @id @default(uuid())
+  fullName    String
+  phone       String?
+  dateOfBirth DateTime?
+  address     String?
+  userId      String    @unique
 
   // Relations
-  user User @relation(fields: [userId], references: [id])
+  user          User           @relation(fields: [userId], references: [id])
   doctors       Doctor[]
   appointments  Appointment[]
   invoices      Invoice[]
@@ -69,12 +68,12 @@ model Doctor {
   id           String        @id @default(uuid())
   fullName     String
   phone        String?
-  dateOfBirth      DateTime?
+  dateOfBirth  DateTime?
   address      String?
   specialty    String?
-  userId String @unique
+  userId       String        @unique
   // Relations
-  user User @relation(fields: [userId], references: [id])
+  user         User          @relation(fields: [userId], references: [id])
   services     Service[]
   patients     Patient[]
   appointments Appointment[]
@@ -83,19 +82,31 @@ model Doctor {
 }
 
 model Appointment {
-  id            String            @id @default(uuid())
-  patientId     String
-  doctorId      String
-  appointmentAt DateTime
-  status        AppointmentStatus @default(SCHEDULED)
-  notes         String?
-  createdAt     DateTime          @default(now())
-
+  id        String            @id @default(uuid())
+  patientId String
+  doctorId  String
+  startTime DateTime
+  endTime   DateTime
+  duration  Int
+  status    AppointmentStatus @default(SCHEDULED)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
   // Relations
-  patient Patient @relation(fields: [patientId], references: [id])
-  doctor  Doctor  @relation(fields: [doctorId], references: [id])
+  patient   Patient           @relation(fields: [patientId], references: [id])
+  doctor    Doctor            @relation(fields: [doctorId], references: [id])
 
   invoice Invoice?
+}
+
+model Service {
+  id          String   @id @default(uuid())
+  name        String
+  price       Float
+  durationMin Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  doctorId    String
+  doctor      Doctor   @relation(fields: [doctorId], references: [id])
 }
 
 model Invoice {
@@ -121,14 +132,4 @@ model Notification {
 
   patient   Patient? @relation(fields: [patientId], references: [id])
   patientId String?
-}
-
-model Service {
-  id        String   @id @default(uuid())
-  name      String
-  price     Float
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  doctorId  String
-  doctor Doctor @relation(fields: [doctorId], references: [id])
 }

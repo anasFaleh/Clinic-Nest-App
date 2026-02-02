@@ -10,7 +10,6 @@ import { compare, hash } from 'bcrypt';
 import { PayloadInterface } from './payload.interface';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { UserRole } from '@prisma/client';
 @Injectable()
 export class AuthService {
   constructor(

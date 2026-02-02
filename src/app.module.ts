@@ -9,6 +9,8 @@ import { WinstonConfig } from './common/logger/logger.config';
 import { PatientModule } from './patient/patient.module';
 import { UserModule } from './user/user.module';
 import { DoctorModule } from './doctor/doctor.module';
+import { AppointmentModule } from './appointment/appointment.module';
+import { ServiceModule } from './service/service.module';
 
 @Module({
   imports: [
@@ -21,6 +23,8 @@ import { DoctorModule } from './doctor/doctor.module';
     PatientModule,
     UserModule,
     DoctorModule,
+    AppointmentModule,
+    ServiceModule,
   ],
   providers: [
     {

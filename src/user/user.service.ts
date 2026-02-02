@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -7,6 +8,7 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import { passwordDto } from './dto';
 import { compare, hash } from 'bcrypt';
+import { UserRole } from 'src/common/Enums';
 
 @Injectable()
 export class UserService {
@@ -62,4 +64,6 @@ export class UserService {
       data: { password: hashed },
     });
   }
+
+
 }

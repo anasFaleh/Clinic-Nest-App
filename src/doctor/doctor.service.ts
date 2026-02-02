@@ -124,4 +124,11 @@ export class DoctorService {
         });
 
     }
+
+
+     async findByUserId(userId: string) {
+    const doctor = await this.prisma.doctor.findUnique({ where: { userId } });
+    if(!doctor) throw new NotFoundException('Doctor Not Found');
+    return doctor;
+  }
 }

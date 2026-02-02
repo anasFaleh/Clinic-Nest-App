@@ -4,9 +4,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { PatientFilterDto, UpdatePatientDto } from './dto';
+import { CreatePatientDto, PatientFilterDto, UpdatePatientDto } from './dto';
 import { UserService } from 'src/user/user.service';
-import { CreatePatientDto } from './dto/crate-patient.dto';
 import { Prisma } from '@prisma/client';
 import { skip } from 'node:test';
 
@@ -15,7 +14,7 @@ export class PatientService {
   constructor(
     private prisma: PrismaService,
     private userService: UserService,
-  ) {}
+  ) { }
 
   /**
    *
@@ -116,5 +115,12 @@ export class PatientService {
     const date = new Date();
     date.setFullYear(date.getFullYear() - age);
     return date;
+  }
+
+
+  async findByUserId(userId: string) {
+    const patient = await this.prisma.patient.findUnique({ where: { userId } });
+    if(!patient) throw new NotFoundException('Patient Not Found');
+    return patient;
   }
 }
